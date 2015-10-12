@@ -1,0 +1,4 @@
+<resources>
+    <!--<item name="blue" type="color">#FF33B5E5</item>-->
+    <color name="cardColor">#ffff0000</color>
+</resources>

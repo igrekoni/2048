@@ -1,0 +1,77 @@
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/board_grid"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    tools:context="com.tile.janv.userinterface1.Board"
+    tools:targetApi="ice_cream_sandwich">
+
+    <!--<FrameLayout-->
+        <!--android:layout_width="50dp"-->
+        <!--android:layout_height="50dp"-->
+        <!--android:background="@color/cardColor">-->
+
+        <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:gravity="center"-->
+            <!--android:text="2048" />-->
+    <!--</FrameLayout>-->
+
+    <!--<FrameLayout android:layout_gravity="fill">-->
+
+        <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:text="2" />-->
+    <!--</FrameLayout>-->
+
+    <!--<FrameLayout android:layout_gravity="fill">-->
+
+        <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:text="3" />-->
+    <!--</FrameLayout>-->
+
+    <!--<FrameLayout android:layout_gravity="fill">-->
+
+        <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:text="4" />-->
+    <!--</FrameLayout>-->
+
+    <!--<FrameLayout android:layout_gravity="fill">-->
+
+        <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:text="5" />-->
+    <!--</FrameLayout>-->
+
+    <!--<FrameLayout android:layout_gravity="fill">-->
+
+        <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:text="6" />-->
+    <!--</FrameLayout>-->
+
+    <!--<FrameLayout android:layout_gravity="fill">-->
+
+        <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:text="7" />-->
+    <!--</FrameLayout>-->
+
+    <!--<FrameLayout android:layout_gravity="fill">-->
+
+        <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:text="8" />-->
+    <!--</FrameLayout>-->
+</GridLayout>
