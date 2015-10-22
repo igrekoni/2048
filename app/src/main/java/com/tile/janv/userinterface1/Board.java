@@ -10,13 +10,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
-import android.widget.RelativeLayout;
+
+import com.tile.janv.userinterface1.logic.LogicUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import butterknife.Bind;
 
 
 /**
@@ -24,7 +23,7 @@ import butterknife.Bind;
  * Use the {@link Board#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class Board extends Fragment {
+public class Board extends Fragment implements SwipeCallback {
 
     public static int BOARD_DIMENSION = 4;
 
@@ -55,15 +54,14 @@ public class Board extends Fragment {
         for (int i = 0; i < cardBoard.length; i++) {
             cardBoard[i] = new CardView[BOARD_DIMENSION];
         }
-        List<Integer> initValues = Arrays.asList(new Integer[]{0,2,4,8});
         for (int i = 0; i < cardBoard.length; i++) {
             for (int j = 0; j < cardBoard.length; j++) {
-                Collections.shuffle(initValues);
-                CardView cardView = createCardView(initValues.get(0));
+                CardView cardView = createCardView(0);
                 cardBoard[i][j] = cardView;
                 board.addView(cardView, toPixels(50), toPixels(50));
             }
         }
+        LogicUtil.init(cardBoard);
     }
 
     @Override
@@ -90,6 +88,26 @@ public class Board extends Fragment {
     private int toPixels(int dps) {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dps * scale + 0.5f);
+    }
+
+    @Override
+    public void up() {
+        LogicUtil.perform(LogicUtil.Action.UP, cardBoard);
+    }
+
+    @Override
+    public void down() {
+        LogicUtil.perform(LogicUtil.Action.DOWN, cardBoard);
+    }
+
+    @Override
+    public void left() {
+        LogicUtil.perform(LogicUtil.Action.LEFT, cardBoard);
+    }
+
+    @Override
+    public void right() {
+        LogicUtil.perform(LogicUtil.Action.RIGHT, cardBoard);
     }
 
 }

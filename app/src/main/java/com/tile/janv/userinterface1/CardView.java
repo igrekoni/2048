@@ -6,10 +6,12 @@ import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.tile.janv.userinterface1.logic.ValueContainer;
+
 /**
  * @see http://www.java2s.com/Code/Android/UI/extendsFrameLayout.htm
  */
-public class CardView extends FrameLayout {
+public class CardView extends FrameLayout implements ValueContainer {
     private TextView textView;
     private int value;
 
@@ -31,10 +33,12 @@ public class CardView extends FrameLayout {
         setBackgroundResource(R.color.cardColor);
     }
 
+    @Override
     public int getValue() {
         return value;
     }
 
+    @Override
     public void setValue(int value) {
         this.value = value;
         textView.setText(value + "");
