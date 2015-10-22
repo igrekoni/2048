@@ -26,15 +26,24 @@ public class LogicUtil {
         fillEmptyPosition(valueContainerGrid);
     }
 
-    public static void perform(Action action, ValueContainer[][] valueContainerGrid) {
+    /**
+     *
+     * @param action
+     * @param valueContainerGrid
+     * @return score of this step
+     */
+    public static int perform(Action action, ValueContainer[][] valueContainerGrid) {
+        int score = 0;
         List<List<ValueContainer>> valueContainersList = toValuesContainersList(action, valueContainerGrid);
         for (int i = 0; i < valueContainersList.size(); i++) {
-            squashOnList(valueContainersList.get(i));
+            score += squashOnList(valueContainersList.get(i));
         }
         fillEmptyPosition(valueContainerGrid);
+        return score;
     }
 
-    public static void squashOnList(List<ValueContainer> valueContainerList) {
+    public static int squashOnList(List<ValueContainer> valueContainerList) {
+        int score = 0;
         //copy input values out of input obejects
         int[] input = new int[valueContainerList.size()];
         for (int i = 0; i < valueContainerList.size(); i++) {
@@ -52,6 +61,7 @@ public class LogicUtil {
                 if (previousValue > 0) {
                     if (previousValue == value) {
                         result[pointer] = previousValue * 2;
+                        score += result[pointer];
                         pointer++;
                         previousValue = 0;
                     } else {
@@ -73,6 +83,53 @@ public class LogicUtil {
         for (int i = 0; i < valueContainerList.size(); i++) {
             valueContainerList.get(i).setValue(result[i]);
         }
+        return score;
+    }
+
+    public static int[][] gridToArray(ValueContainer[][] valueContainerGrid) {
+        int[][] arrays = new int[valueContainerGrid.length][];
+        for (int i = 0; i < valueContainerGrid.length; i++) {
+            ValueContainer[] valueContainersRow = valueContainerGrid[i];
+            arrays[i] = new int[valueContainersRow.length];
+            for (int j = 0; j < valueContainersRow.length; j++) {
+                arrays[i][j] = valueContainersRow[j].getValue();
+            }
+        }
+        return arrays;
+    }
+
+    public static int[] gridToSingleArray(ValueContainer[][] valueContainerGrid) {
+        int[][] arrays = gridToArray(valueContainerGrid);
+        int rowSize = arrays[0].length;
+        int[] array = new int[arrays.length * arrays[0].length];
+        for (int row = 0; row < arrays.length; row++) {
+            for (int column = 0; column < rowSize; column++) {
+                array[row * rowSize + column] = arrays[row][column];
+            }
+        }
+        return array;
+    }
+
+    public static ValueContainer[][] copyValues(ValueContainer[][] valueContainerGrid, int[][] values) {
+        for (int i = 0; i < valueContainerGrid.length; i++) {
+            for (int j = 0; j < valueContainerGrid.length; j++) {
+                valueContainerGrid[i][j].setValue(values[i][j]);
+            }
+        }
+        return valueContainerGrid;
+    }
+
+    public static ValueContainer[][] copyValues(ValueContainer[][] valueContainerGrid, int[] valuesSingleArray, int rowCount, int rowSize) {
+        int[][] arrays = new int[rowCount][];
+        for (int i = 0; i < rowCount; i++) {
+            arrays[i] = new int[rowSize];
+        }
+        for (int elem = 0; elem < valuesSingleArray.length; elem++) {
+            int row = elem / rowSize;
+            int column = elem % rowSize;
+            arrays[row][column] = valuesSingleArray[elem];
+        }
+        return copyValues(valueContainerGrid, arrays);
     }
 
     //--------------------------------------
@@ -86,8 +143,8 @@ public class LogicUtil {
     private static boolean fillEmptyPosition(ValueContainer[][] valueContainerGrid) {
         Position randomEmptyPosition = getRandomEmptyPosition(valueContainerGrid);
         if (randomEmptyPosition != null) {
-            System.out.println("random position " + randomEmptyPosition + "  " +
-                    valueContainerGrid[randomEmptyPosition.getRow()][randomEmptyPosition.getColumn()]);
+//            System.out.println("random position " + randomEmptyPosition + "  " +
+//                    valueContainerGrid[randomEmptyPosition.getRow()][randomEmptyPosition.getColumn()]);
             valueContainerGrid[randomEmptyPosition.getRow()][randomEmptyPosition.getColumn()].setValue(createRandomNewValue());
             return true;
         }
@@ -112,7 +169,7 @@ public class LogicUtil {
                 }
             }
         }
-        System.out.println(emptyPositionList);
+//        System.out.println(emptyPositionList);
         if (emptyPositionList.size() > 0) {
             return emptyPositionList.get(random.nextInt(emptyPositionList.size()));
         }

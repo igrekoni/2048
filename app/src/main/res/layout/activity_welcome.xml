@@ -20,7 +20,6 @@
         android:text="@string/option_continue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="clickButtonContinue"
         android:layout_margin="5dp"/>
     <Button
         android:id="@+id/button_option_new_game"

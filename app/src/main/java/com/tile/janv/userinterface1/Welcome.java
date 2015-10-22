@@ -1,7 +1,9 @@
 package com.tile.janv.userinterface1;
 
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -69,9 +71,22 @@ public class Welcome extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @OnClick(R.id.button_option_continue)
+    public void onResetGameButtonClicked() {
+        startPlayActivity(true);
+    }
+
     @OnClick(R.id.button_option_new_game)
     public void onNewGameButtonClicked() {
+        startPlayActivity(false);
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    private void startPlayActivity(boolean reset) {
         Intent intent = new Intent(this, PlayActivity.class);
-        startActivity(intent);
+        Bundle extra = new Bundle();
+        extra.putBoolean(PlayActivity.RESET, reset);
+        intent.putExtras(extra);
+        startActivity(intent, extra);
     }
 }

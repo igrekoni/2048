@@ -6,10 +6,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.widget.TextView;
 
 public class PlayActivity extends AppCompatActivity {
 
+    static final String PREVIOUS_GAME = "previousGame";
+    static final String BEST_SCORE = "bestScore";
+    static final String RESET = "reset";
+
     private Board board;
+
+    int bestScore = 0;
 
     private GestureDetectorCompat mDetector;
     private SwipeListener swipeListener;
@@ -22,6 +29,19 @@ public class PlayActivity extends AppCompatActivity {
         swipeListener = new SwipeListener();
         swipeListener.addCallback(board);
         mDetector = new GestureDetectorCompat(this, swipeListener);
+
+        Bundle extras = getIntent().getExtras();
+        boolean reset = extras.getBoolean(RESET);
+
+        if (savedInstanceState != null) {
+            // Restore value of members from saved state
+            int[] previousGame = savedInstanceState.getIntArray(PREVIOUS_GAME);
+            //TODO send to board
+            bestScore = savedInstanceState.getInt(BEST_SCORE);
+        } else {
+            // Probably initialize members with default values for a new instance
+        }
+
     }
 
     @Override
@@ -50,5 +70,15 @@ public class PlayActivity extends AppCompatActivity {
     public boolean onTouchEvent(MotionEvent event) {
         this.mDetector.onTouchEvent(event);
         return super.onTouchEvent(event);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state
+        savedInstanceState.putIntArray(PREVIOUS_GAME, board.getGridValues());
+        savedInstanceState.putInt(BEST_SCORE, Math.max(bestScore, board.getScore()));
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
     }
 }

@@ -10,12 +10,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
+import android.widget.TextView;
 
 import com.tile.janv.userinterface1.logic.LogicUtil;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 
 /**
@@ -27,10 +24,12 @@ public class Board extends Fragment implements SwipeCallback {
 
     public static int BOARD_DIMENSION = 4;
 
-//    @Bind(R.id.board_grid)
-    GridLayout board;
+    private GridLayout board;
+    private TextView scoreView;
 
     private CardView[][] cardBoard;
+
+    private int score = 0;
 
     public static Board newInstance() {
         Board fragment = new Board();
@@ -40,6 +39,23 @@ public class Board extends Fragment implements SwipeCallback {
 
     public Board() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View totalView = inflater.inflate(R.layout.fragment_board, container, false);
+        board = (GridLayout) totalView.findViewById(R.id.board_grid);
+        scoreView = (TextView) totalView.findViewById(R.id.score_value);
+        Log.i("Board", "Board onCreateView " + (board != null ? "hasBoard" : "hasNoBoard"));
+        initBoard();
+        return board;
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
@@ -64,21 +80,6 @@ public class Board extends Fragment implements SwipeCallback {
         LogicUtil.init(cardBoard);
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        board = (GridLayout) inflater.inflate(R.layout.fragment_board, container, false);
-        Log.i("Board", "Board onCreateView " + (board != null ? "hasBoard" : "hasNoBoard"));
-        initBoard();
-        return board;
-    }
-
     private CardView createCardView(int value) {
         CardView cardView = new CardView(board.getContext());
         cardView.setValue(value);
@@ -92,22 +93,41 @@ public class Board extends Fragment implements SwipeCallback {
 
     @Override
     public void up() {
-        LogicUtil.perform(LogicUtil.Action.UP, cardBoard);
+        score += LogicUtil.perform(LogicUtil.Action.UP, cardBoard);
+        updateScoreView();
     }
 
     @Override
     public void down() {
-        LogicUtil.perform(LogicUtil.Action.DOWN, cardBoard);
+        score += LogicUtil.perform(LogicUtil.Action.DOWN, cardBoard);
+        updateScoreView();
     }
 
     @Override
     public void left() {
-        LogicUtil.perform(LogicUtil.Action.LEFT, cardBoard);
+        score += LogicUtil.perform(LogicUtil.Action.LEFT, cardBoard);
+        updateScoreView();
     }
 
     @Override
     public void right() {
-        LogicUtil.perform(LogicUtil.Action.RIGHT, cardBoard);
+        score += LogicUtil.perform(LogicUtil.Action.RIGHT, cardBoard);
+        updateScoreView();
     }
 
+    public int[] getGridValues() {
+        return LogicUtil.gridToSingleArray(cardBoard);
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    private void updateScoreView() {
+        scoreView.setText(score);
+    }
 }
