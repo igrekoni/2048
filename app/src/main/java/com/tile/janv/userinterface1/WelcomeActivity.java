@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.Toast;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -37,7 +38,12 @@ public class WelcomeActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_restart) {
+            // TODO: implement restart code
+            Toast.makeText(getApplicationContext(), "Menu button restart has been clicked", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+
         if (id == R.id.action_settings) {
             return true;
         }
@@ -56,6 +62,8 @@ public class WelcomeActivity extends AppCompatActivity {
 
     @OnClick(R.id.button_option_exit)
     public void onExitButtonClicked() {
+        // exit the application
+        // see http://stackoverflow.com/questions/4756835/how-to-launch-home-screen-programmatically-in-android
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
