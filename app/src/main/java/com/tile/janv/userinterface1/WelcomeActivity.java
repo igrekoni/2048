@@ -16,9 +16,6 @@ import butterknife.OnClick;
 
 public class WelcomeActivity extends AppCompatActivity {
 
-    @Bind(R.id.button_option_about)
-    Button aboutButton;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,16 +47,11 @@ public class WelcomeActivity extends AppCompatActivity {
 
     @OnClick(R.id.button_option_about)
     public void onAboutButtonClicked() {
-        // 1. Instantiate an AlertDialog.Builder with its constructor
-        AlertDialog.Builder builder = new AlertDialog.Builder(WelcomeActivity.this);
-
-        // 2. Chain together various setter methods to set the dialog characteristics
-        builder.setMessage(R.string.about_dialog_message)
-                .setTitle(R.string.about_dialog_title);
-
-        // 3. Get the AlertDialog from create()
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        new AlertDialog.Builder(WelcomeActivity.this)
+                .setMessage(R.string.about_dialog_message)
+                .setTitle(R.string.about_dialog_title)
+                .create()
+                .show();
     }
 
     @OnClick(R.id.button_option_exit)
