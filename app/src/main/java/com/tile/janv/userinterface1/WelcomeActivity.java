@@ -8,14 +8,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class Welcome extends AppCompatActivity {
+public class WelcomeActivity extends AppCompatActivity {
 
     @Bind(R.id.button_option_about)
     Button aboutButton;
@@ -52,7 +51,7 @@ public class Welcome extends AppCompatActivity {
     @OnClick(R.id.button_option_about)
     public void onAboutButtonClicked() {
         // 1. Instantiate an AlertDialog.Builder with its constructor
-        AlertDialog.Builder builder = new AlertDialog.Builder(Welcome.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(WelcomeActivity.this);
 
         // 2. Chain together various setter methods to set the dialog characteristics
         builder.setMessage(R.string.about_dialog_message)
