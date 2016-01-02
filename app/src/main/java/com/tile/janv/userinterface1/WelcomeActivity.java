@@ -1,11 +1,11 @@
 package com.tile.janv.userinterface1;
 
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
@@ -17,6 +17,13 @@ import butterknife.OnClick;
 
 public class WelcomeActivity extends AppCompatActivity {
 
+    @Bind(R.id.button_option_continue)
+    protected Button continueButton;
+
+    //---------------------
+    // lifecycle methods
+    //---------------------
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,10 +32,20 @@ public class WelcomeActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        updateView();
+    }
+
+    //---------------------
+    // menu methods
+    //---------------------
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_welcome, menu);
-        return super.onCreateOptionsMenu(menu);
+        return true;
     }
 
     @Override
@@ -39,20 +56,43 @@ public class WelcomeActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_restart) {
-            // TODO: implement restart code
-            Toast.makeText(getApplicationContext(), "Menu button restart has been clicked", Toast.LENGTH_SHORT).show();
+            Log.i(Constants.LOG_TAG, "main activity menu reset button clicked.");
+            getSharedPreferences(Constants.SP_2048_GAME, MODE_PRIVATE).edit()
+                    .remove(Constants.SP_BEST_SCORE)
+                    .remove(Constants.SP_LAST_GAME)
+                    .commit();
+            Toast.makeText(getApplicationContext(), getString(R.string.reset_info_text), Toast.LENGTH_SHORT).show();
+            updateView();
             return true;
         }
 
         if (id == R.id.action_settings) {
+            Log.i(Constants.LOG_TAG, "main activity menu settings button clicked.");
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    //---------------------
+    // click button methods
+    //---------------------
+
+    @OnClick(R.id.button_option_continue)
+    public void onResetGameButtonClicked() {
+        Log.i(Constants.LOG_TAG, "main activity continue button clicked.");
+        startActivity(PlayActivity.createIntent(this, true));
+    }
+
+    @OnClick(R.id.button_option_new_game)
+    public void onNewGameButtonClicked() {
+        Log.i(Constants.LOG_TAG, "main activity new game button clicked.");
+        startActivity(PlayActivity.createIntent(this, false));
+    }
+
     @OnClick(R.id.button_option_about)
     public void onAboutButtonClicked() {
+        Log.i(Constants.LOG_TAG, "main activity about button clicked.");
         new AlertDialog.Builder(WelcomeActivity.this)
                 .setMessage(R.string.about_dialog_message)
                 .setTitle(R.string.about_dialog_title)
@@ -62,6 +102,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
     @OnClick(R.id.button_option_exit)
     public void onExitButtonClicked() {
+        Log.i(Constants.LOG_TAG, "main activity exit button clicked.");
         // exit the application
         // see http://stackoverflow.com/questions/4756835/how-to-launch-home-screen-programmatically-in-android
         Intent intent = new Intent(Intent.ACTION_MAIN);
@@ -70,22 +111,13 @@ public class WelcomeActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    @OnClick(R.id.button_option_continue)
-    public void onResetGameButtonClicked() {
-        startPlayActivity(true);
-    }
+    //---------------------
+    // private methods
+    //---------------------
 
-    @OnClick(R.id.button_option_new_game)
-    public void onNewGameButtonClicked() {
-        startPlayActivity(false);
-    }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    private void startPlayActivity(boolean reset) {
-        Intent intent = new Intent(this, PlayActivity.class);
-        Bundle extra = new Bundle();
-        extra.putBoolean(PlayActivity.RESET, reset);
-        intent.putExtras(extra);
-        startActivity(intent, extra);
+    private void updateView() {
+        // check the values in shared preference
+        SharedPreferences sp = getSharedPreferences(Constants.SP_2048_GAME, MODE_PRIVATE);
+        continueButton.setEnabled(sp.contains(Constants.SP_LAST_GAME));
     }
 }

@@ -1,48 +1,127 @@
 package com.tile.janv.userinterface1;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
-public class PlayActivity extends AppCompatActivity {
+import com.tile.janv.userinterface1.logic.LogicUtil;
+import com.tile.janv.userinterface1.swipe.SwipeCallback;
+import com.tile.janv.userinterface1.swipe.SwipeListener;
+import com.tile.janv.userinterface1.util.GameInfo;
+import com.tile.janv.userinterface1.util.GameUtil;
 
-    static final String PREVIOUS_GAME = "previousGame";
-    static final String BEST_SCORE = "bestScore";
-    static final String RESET = "reset";
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
-    private Board board;
+public class PlayActivity extends AppCompatActivity implements SwipeCallback {
 
-    int bestScore = 0;
+    private static final String PREVIOUS_GAME = "previousGame";
+    private static final String SCORE = "score";
+    private static final String CONTINUE = "continuePreviousGame";
+
+    @Bind(R.id.board_grid)
+    protected Board board;
+
+    @Bind(R.id.current_score)
+    protected TextView currentScoreText;
+
+    @Bind(R.id.best_score)
+    protected TextView bestScoreText;
+
+    private int score = 0;
+    private int bestScore = 0;
 
     private GestureDetectorCompat mDetector;
     private SwipeListener swipeListener;
+
+    public static Intent createIntent(Context context, boolean continuePreviousGame) {
+        Intent intent = new Intent(context, PlayActivity.class);
+        Bundle extra = new Bundle();
+        extra.putBoolean(PlayActivity.CONTINUE, continuePreviousGame);
+        intent.putExtras(extra);
+        return intent;
+    }
+
+    //---------------------
+    // lifecycle methods
+    //---------------------
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play);
-        board = (Board) getSupportFragmentManager().findFragmentById(R.id.play_board);
-        swipeListener = new SwipeListener();
-        swipeListener.addCallback(board);
-        mDetector = new GestureDetectorCompat(this, swipeListener);
+        ButterKnife.bind(this);
+        linkSwipe();
 
-        Bundle extras = getIntent().getExtras();
-        boolean reset = extras.getBoolean(RESET);
+        SharedPreferences mySharedPreferences = getSharedPreferences(Constants.SP_2048_GAME, MODE_PRIVATE);
+        bestScore = mySharedPreferences.getInt(Constants.SP_BEST_SCORE, 0);
 
         if (savedInstanceState != null) {
             // Restore value of members from saved state
             int[] previousGame = savedInstanceState.getIntArray(PREVIOUS_GAME);
-            //TODO send to board
-            bestScore = savedInstanceState.getInt(BEST_SCORE);
+            board.setPreviousGame(previousGame);
+            score = savedInstanceState.getInt(SCORE);
+        } else if (getIntent().getExtras() != null &&
+                getIntent().getExtras().getBoolean(PlayActivity.CONTINUE) &&
+                mySharedPreferences.contains(Constants.SP_LAST_GAME)) {
+            // fill board with values of previous game
+            String previousGameAsString = mySharedPreferences.getString(Constants.SP_LAST_GAME, null);
+            if (previousGameAsString != null) {
+                extractGameInfo(previousGameAsString);
+            } else {
+                createNewGame();
+            }
         } else {
-            // Probably initialize members with default values for a new instance
+            createNewGame();
         }
 
+        // update view
+        bestScoreText.setText(getString(R.string.best_score_label, bestScore));
+        updateScoreView();
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state
+        savedInstanceState.putIntArray(PREVIOUS_GAME, board.getCurrentGame());
+        savedInstanceState.putInt(SCORE, score);
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    protected void onPause() {
+        getSharedPreferences(Constants.SP_2048_GAME, MODE_PRIVATE).edit()
+                .putInt(Constants.SP_BEST_SCORE, Math.max(bestScore, score))
+                .commit();
+        boolean gameIsNotBusted = true;
+        if (gameIsNotBusted) {
+            getSharedPreferences(Constants.SP_2048_GAME, MODE_PRIVATE).edit()
+                    .putString(Constants.SP_LAST_GAME, GameUtil.gameInfoToString(
+                            new GameInfo(score, board.getCurrentGame())))
+                    .commit();
+        } else {
+            getSharedPreferences(Constants.SP_2048_GAME, MODE_PRIVATE).edit()
+                    .remove(Constants.SP_LAST_GAME)
+                    .commit();
+        }
+        super.onPause();
+    }
+
+    //---------------------
+    // menu methods
+    //---------------------
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -53,18 +132,19 @@ public class PlayActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Log.i(Constants.LOG_TAG, "play activity menu settings button clicked.");
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+    //---------------------
+    // SwipeCallback methods
+    //---------------------
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -73,12 +153,58 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        // Save the user's current game state
-        savedInstanceState.putIntArray(PREVIOUS_GAME, board.getGridValues());
-        savedInstanceState.putInt(BEST_SCORE, Math.max(bestScore, board.getScore()));
+    public void up() {
+        Log.i(Constants.LOG_TAG, "Swiped up.");
+        score += LogicUtil.perform(LogicUtil.Action.UP, board.getValueContainerGrid());
+        updateScoreView();
+    }
 
-        // Always call the superclass so it can save the view hierarchy state
-        super.onSaveInstanceState(savedInstanceState);
+    @Override
+    public void down() {
+        Log.i(Constants.LOG_TAG, "Swiped down.");
+        score += LogicUtil.perform(LogicUtil.Action.DOWN, board.getValueContainerGrid());
+        updateScoreView();
+    }
+
+    @Override
+    public void left() {
+        Log.i(Constants.LOG_TAG, "Swiped left.");
+        score += LogicUtil.perform(LogicUtil.Action.LEFT, board.getValueContainerGrid());
+        updateScoreView();
+    }
+
+    @Override
+    public void right() {
+        Log.i(Constants.LOG_TAG, "Swiped right.");
+        score += LogicUtil.perform(LogicUtil.Action.RIGHT, board.getValueContainerGrid());
+        updateScoreView();
+    }
+
+    //---------------------
+    // private methods
+    //---------------------
+
+    private void updateScoreView() {
+        currentScoreText.setText(getString(R.string.current_score_label, score));
+        if (score > bestScore) {
+            bestScoreText.setText(getString(R.string.best_score_label, score));
+        }
+    }
+
+    private void linkSwipe() {
+        swipeListener = new SwipeListener();
+        swipeListener.addCallback(this);
+        mDetector = new GestureDetectorCompat(this, swipeListener);
+    }
+
+    private void extractGameInfo(String gameInfoAsString) {
+        GameInfo gameInfo = GameUtil.extractGameInfo(gameInfoAsString);
+        score = gameInfo.getScore();
+        board.setPreviousGame(gameInfo.getValues());
+    }
+
+    private void createNewGame() {
+        board.createNewGame();
+        score = 0;
     }
 }

@@ -1,4 +1,4 @@
-package com.tile.janv.userinterface1;
+package com.tile.janv.userinterface1.swipe;
 
 /**
  * Created by janv on 22-Oct-15.

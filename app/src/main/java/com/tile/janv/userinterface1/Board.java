@@ -1,133 +1,153 @@
 package com.tile.janv.userinterface1;
 
 
-import android.annotation.TargetApi;
-import android.os.Build;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.content.Context;
+import android.util.AttributeSet;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.util.TypedValue;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.GridLayout;
-import android.widget.TextView;
 
 import com.tile.janv.userinterface1.logic.LogicUtil;
+import com.tile.janv.userinterface1.logic.ValueContainer;
 
 
 /**
- * A simple {@link Fragment} subclass.
- * Use the {@link Board#newInstance} factory method to
- * create an instance of this fragment.
+ * Extension of {@link GridLayout} to show a 2048 game grid.
+ * In API below 21, weight principles cannot be used. As this class aims to support 14+ api,
+ * the dimension of the grid elements is calculated based on the size of the device.
+ * Alternative would have been {@link android.widget.TableLayout}.
  */
-public class Board extends Fragment implements SwipeCallback {
+public class Board extends GridLayout {
 
-    public static int BOARD_DIMENSION = 4;
+    private View.OnLayoutChangeListener layoutChangeListener;
+    private ValueContainer[][] cardBoard;
 
-    private GridLayout board;
-    private TextView scoreView;
+    private int[] previousGame;
 
-    private CardView[][] cardBoard;
-
-    private int score = 0;
-
-    public static Board newInstance() {
-        Board fragment = new Board();
-//        fragment.initBoard();
-        return fragment;
+    public Board(Context context) {
+        this(context, null);
     }
 
-    public Board() {
-        // Required empty public constructor
+    public Board(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public Board(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        layoutChangeListener = new OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                initBoard();
+                Board.this.removeOnLayoutChangeListener(layoutChangeListener);
+            }
+        };
+        addOnLayoutChangeListener(layoutChangeListener);
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View totalView = inflater.inflate(R.layout.fragment_board, container, false);
-        board = (GridLayout) totalView.findViewById(R.id.board_grid);
-        scoreView = (TextView) totalView.findViewById(R.id.score_value);
-        Log.i("Board", "Board onCreateView " + (board != null ? "hasBoard" : "hasNoBoard"));
-        initBoard();
-        return board;
+    //---------------------
+    // methods called by activity
+    //---------------------
+
+    public void setPreviousGame(int[] previousGame) {
+        this.previousGame = previousGame;
+        updateBordValues();
     }
 
-    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-    public void initBoard() {
-//        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-//        params.setMargins(5,5,5,5);
-//        params.width = toPixels(50);
-//        params.height = toPixels(50);
-        board.setColumnCount(BOARD_DIMENSION);
-        board.setRowCount(BOARD_DIMENSION);
-        cardBoard = new CardView[BOARD_DIMENSION][];
+    public void createNewGame() {
+        this.previousGame = null;
+        updateBordValues();
+    }
+
+    /**
+     * If there is a board, update the values with the settings as provided, i.e. new game or saved game.
+     */
+    public void updateBordValues() {
+        if (cardBoard == null) {
+            return;
+        }
+        if (previousGame != null) {
+            int dim = cardBoard.length;
+            for (int i = 0; i < dim; i++) {
+                for (int j = 0; j < dim; j++) {
+                    cardBoard[i][j].setValue(previousGame[i * dim + j]);
+                }
+            }
+        } else {
+            LogicUtil.init(cardBoard);
+        }
+    }
+
+    public int[] getCurrentGame() {
+        if (cardBoard == null) {
+            return new int[0];
+        }
+        int dim = cardBoard.length;
+        int[] gameValues = new int[dim * dim];
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++) {
+                gameValues[i * dim + j] = cardBoard[i][j].getValue();
+            }
+        }
+        return gameValues;
+    }
+
+    public ValueContainer[][] getValueContainerGrid() {
+        return cardBoard;
+    }
+
+    //---------------------
+    // private methods
+    //---------------------
+
+    private void initBoard() {
+        int boardDimension = getResources().getInteger(R.integer.board_dimension);
+        int cardDimension = getCardDimension(boardDimension);
+        Log.i(Constants.LOG_TAG, String.format("About to initiate the board with dimension %d and card size %d", boardDimension, cardDimension));
+        cardBoard = new Card[boardDimension][];
         for (int i = 0; i < cardBoard.length; i++) {
-            cardBoard[i] = new CardView[BOARD_DIMENSION];
+            cardBoard[i] = new Card[boardDimension];
         }
         for (int i = 0; i < cardBoard.length; i++) {
             for (int j = 0; j < cardBoard.length; j++) {
-                CardView cardView = createCardView(0);
-                cardBoard[i][j] = cardView;
-                board.addView(cardView, toPixels(50), toPixels(50));
+                Card card = createCardView(0);
+                card.textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, cardDimension / 8);
+                cardBoard[i][j] = card;
+                addView(card, cardDimension, cardDimension);
             }
         }
-        LogicUtil.init(cardBoard);
+        updateBordValues();
     }
 
-    private CardView createCardView(int value) {
-        CardView cardView = new CardView(board.getContext());
-        cardView.setValue(value);
-        return cardView;
+    private Card createCardView(int value) {
+        Card card = new Card(getContext());
+        card.setValue(value);
+        return card;
+    }
+
+    /**
+     * Calculate card dimensions based on the Board's dimension.
+     * @param boardDimension
+     * @return
+     */
+    private int getCardDimension(int boardDimension) {
+        int cardFallbackDimension = getResources().getInteger(R.integer.card_fallback_dimension);
+        int widthPerTile = getWidth() / boardDimension;
+        int heightPerTile = getHeight() / boardDimension;
+        if (widthPerTile > 0 && heightPerTile > 0) {
+            return widthPerTile > heightPerTile ? heightPerTile : widthPerTile;
+        } else if (widthPerTile > 0) {
+            // portrait mode
+            return widthPerTile;
+        } else if (heightPerTile > 0) {
+            // landscape mode
+            return heightPerTile;
+        }
+        return cardFallbackDimension;
     }
 
     private int toPixels(int dps) {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dps * scale + 0.5f);
-    }
-
-    @Override
-    public void up() {
-        score += LogicUtil.perform(LogicUtil.Action.UP, cardBoard);
-        updateScoreView();
-    }
-
-    @Override
-    public void down() {
-        score += LogicUtil.perform(LogicUtil.Action.DOWN, cardBoard);
-        updateScoreView();
-    }
-
-    @Override
-    public void left() {
-        score += LogicUtil.perform(LogicUtil.Action.LEFT, cardBoard);
-        updateScoreView();
-    }
-
-    @Override
-    public void right() {
-        score += LogicUtil.perform(LogicUtil.Action.RIGHT, cardBoard);
-        updateScoreView();
-    }
-
-    public int[] getGridValues() {
-        return LogicUtil.gridToSingleArray(cardBoard);
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
-    }
-
-    private void updateScoreView() {
-        scoreView.setText(score);
     }
 }

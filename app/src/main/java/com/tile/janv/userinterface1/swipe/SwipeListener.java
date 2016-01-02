@@ -1,4 +1,4 @@
-package com.tile.janv.userinterface1;
+package com.tile.janv.userinterface1.swipe;
 
 import android.util.Log;
 import android.view.GestureDetector;
