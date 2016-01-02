@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.tile.janv.userinterface1.WelcomeActivity">
     <item android:id="@+id/action_restart"
-        android:title="@string/action_restart"
+        android:title="@string/action_reset"
         app:showAsAction="ifRoom" />
 
     <item android:id="@+id/action_settings"

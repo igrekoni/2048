@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_below="@id/score_section"
+    android:background="@color/boardColor"
+    android:layout_alignParentBottom = "true">
+
+    <com.tile.janv.userinterface1.Board
+        android:id="@+id/board_grid"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:columnCount="@integer/board_dimension"
+        android:rowCount="@integer/board_dimension"
+        android:layout_gravity="center"
+        android:layout_margin="@dimen/board_margin">
+    </com.tile.janv.userinterface1.Board>
+
+</FrameLayout>
